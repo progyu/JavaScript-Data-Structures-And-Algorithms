@@ -1,0 +1,72 @@
+# 자바스크립트 메모리 관리
+
+v8 엔진과 같은 최신 자바스크립트 엔진에는 사용하지 않는 변수를 메모리에서 해제하는 가비지 컬렉터(garbage collector)가 있다.
+
+## DOM 메모리 누수
+
+DOM 항목을 가리키는 변수가 이벤트 콜백 외부에 선언된 경우 해당 DOM 항목을 제거하더라도 해당 항목은 여전히 메모리에 남게 된다.
+
+```html
+<div class="one">One</div>
+<div class="two">Two</div>
+
+<script>
+    const one - document.querySelector(.'one');
+    const two - document.querySelector(.'two');
+    one.addEventListener('click', ()=> {
+        two.remove();
+        console.log(two); // 삭제 이후에도 출력된다.
+    })
+   	// 해당 DOM이 HTML에서 사라지더라도 해당 DOM이 이벤트 콜백에서 사용됐다면 참조는 남는다.
+    
+    // 다음과 같은 방법으로 DOM 메모리 누수를 쉽게 수정할 수 있다.
+    
+    const one - document.querySelector(.'one');
+
+    one.addEventListener('click', ()=> {
+        const two - document.querySelector(.'two');
+        two.remove();
+    })
+    
+    // 이벤트 핸들러를 사용한 뒤 등록해지를 하여도 메모리 누수를 막을 수 있다.
+      const one - document.querySelector(.'one');
+
+    one.addEventListener('click', ()=> {
+        const two - document.querySelector(.'two');
+        two.remove();
+    })
+    one.removeEventListener('click');
+</script>
+```
+
+
+
+## Window 전역 객체
+
+전역 변수를 사용하지 않음으로써 메모리를 절약할 수 있다.
+
+
+
+## 객체 참조 제한하기
+
+함수의 객체 전체 범위가 아닌 필요한 범위만 전달해야 하며 특히 전체 객체가 아닌 필요한 속성만 전달하도록 해야한다. 객체가 차지하는 메모리 공간이 매우 클 수도 있기 때문이다.
+
+```javascript
+const test = {
+    prop1: 'test',
+    prop2: 'hi'
+}
+
+// 이런 방식으로 매개변수에 전체 객체를 전달하면 안된다.
+// function printProp1(test) {
+//    console.log(test.prop1);
+// }
+
+// 필요한 속성만 전달해주면 된다.
+function printProp1(prop1) {
+   console.log(prop1);
+}
+
+printProp1(test.prop1); // 'test'
+```
+
